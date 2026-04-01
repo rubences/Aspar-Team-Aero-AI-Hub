@@ -1,9 +1,10 @@
 import requests
 from langchain.tools import tool
+import os
 
 # Internal service URLs
-MCP_TELEMETRY_URL = "http://localhost:8001"
-MCP_ML_CORE_URL = "http://localhost:8002"
+MCP_TELEMETRY_URL = os.getenv("MCP_TELEMETRY_URL", "http://localhost:8001")
+MCP_ML_CORE_URL = os.getenv("MCP_ML_CORE_URL", "http://localhost:8002")
 
 @tool
 def get_live_telemetry_summary(bike_id: str, sensor_name: str):

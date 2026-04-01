@@ -1,5 +1,6 @@
 from typing import TypedDict, List, Annotated, Union
 import operator
+import os
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
@@ -13,7 +14,7 @@ class AgentState(TypedDict):
     validation_status: str # "PENDING", "APPROVED", "REJECTED"
 
 # LLM Setup (GPT-4o or similar)
-llm = ChatOpenAI(model="gpt-4o", temperature=0)
+llm = ChatOpenAI(model="gpt-4o", temperature=0) if os.getenv("OPENAI_API_KEY") else None
 
 def supervisor_node(state: AgentState):
     """

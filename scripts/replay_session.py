@@ -42,14 +42,14 @@ class SessionReplayEngine:
         print(f"Loaded {len(mock_history)} samples. Starting stream...")
         
         # 2. Iterate and Stream to Kafka
-        for msg in mock_history:
+        for idx, msg in enumerate(mock_history):
             self.producer.produce(KAFKA_TOPIC, json.dumps(msg).encode('utf-8'))
             
             # 3. Simulate Original Frequency (1000Hz) adjusted by Speed
             delay = 0.001 / self.speed
             time.sleep(delay)
             
-            if i % 10 == 0:
+            if idx % 10 == 0:
                 self.producer.flush()
 
         print("[ REPLAY COMPLETE ] All packets injected into the pipeline.")

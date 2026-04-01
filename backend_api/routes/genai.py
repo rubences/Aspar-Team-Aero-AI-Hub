@@ -56,7 +56,13 @@ from confluent_kafka import Producer
 import json
 
 # Setup Producer for Closed-Loop Control
-control_producer = Producer({'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')})
+control_producer = None
+
+def get_control_producer():
+    global control_producer
+    if control_producer is None:
+        control_producer = Producer({'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')})
+    return control_producer
 
 @router.post("/hitl/validate")
 async def validate_recommendation(validation: ValidationResponse, current_user: str = Depends(get_current_user)):
@@ -77,8 +83,9 @@ async def validate_recommendation(validation: ValidationResponse, current_user: 
                             val = float(match.group(1))
                             # Send control signal to simulator
                             control_msg = {"param": "rake_offset", "value": val}
-                            control_producer.produce("telemetry.control", json.dumps(control_msg).encode('utf-8'))
-                            control_producer.flush()
+                            producer = get_control_producer()
+                            producer.produce("telemetry.control", json.dumps(control_msg).encode('utf-8'))
+                            producer.flush()
                     except Exception as e:
                         print(f"Error producing control signal: {e}")
 

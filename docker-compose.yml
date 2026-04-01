@@ -100,6 +100,8 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MCP_TELEMETRY_URL=http://mcp-telemetry:8001
+      - MCP_ML_CORE_URL=http://mcp-ml-core:8002
     networks:
       - aero-ai-network
     depends_on:
@@ -146,6 +148,9 @@ services:
     command: ["python", "ingestion_correlation/kafka_consumers/telemetry_consumer.py"]
     environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - BACKEND_URL=http://api-gateway:8000
+      - AUTH_USERNAME=aspar_engineer
+      - AUTH_PASSWORD=aspar_pass_2024
     networks:
       - aero-ai-network
     depends_on:

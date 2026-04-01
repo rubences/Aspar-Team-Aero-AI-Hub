@@ -1,11 +1,12 @@
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+import os
 from backend_api.auth.core import get_current_user
 
 router = APIRouter(prefix="/telemetry", tags=["Telemetry"])
 
-MCP_TELEMETRY_URL = "http://localhost:8001"
+MCP_TELEMETRY_URL = os.getenv("MCP_TELEMETRY_URL", "http://localhost:8001")
 
 class SessionMetadata(BaseModel):
     bike_id: str
