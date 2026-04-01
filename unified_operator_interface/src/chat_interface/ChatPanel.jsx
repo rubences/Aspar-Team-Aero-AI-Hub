@@ -6,20 +6,33 @@ const ChatPanel = () => {
   ]);
   const [input, setInput] = useState('');
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     
-    const newMessages = [...messages, { role: 'user', content: input }];
-    setMessages(newMessages);
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Simulate Agent Response
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:8000/genai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input, bike_id: 'ASPAR-AERO-01' })
+      });
+      
+      const data = await response.json();
+      if (data.response) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.response 
+        }]);
+      }
+    } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: `Analizando: "${input}"... Consultando a los especialistas en el box.` 
+        content: "Error: No se pudo contactar con el centro de mando." 
       }]);
-    }, 1000);
+    }
   };
 
   return (

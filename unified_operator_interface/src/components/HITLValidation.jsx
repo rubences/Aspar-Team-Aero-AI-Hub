@@ -1,28 +1,44 @@
 import React, { useState } from 'react';
 
 const HITLValidation = () => {
-  const [recommendations, setRecommendations] = useState([
-    {
-      id: 1,
-      type: 'Aero',
-      title: 'Ajuste de Carenado Frontal',
-      description: 'La Red GRU predice una pérdida de carga de 0.2kg en la entrada de la curva 3. Se recomienda avance de 2mm.',
-      status: 'pending'
-    },
-    {
-      id: 2,
-      type: 'Motor',
-      title: 'Mapa Energético (E-Map 3)',
-      description: 'Basado en RAG (Phillip Island 2023), el consumo actual superará el límite en la vuelta 18. Sugerido cambio a Mapa 3.',
-      status: 'pending'
-    }
-  ]);
+  const [recommendations, setRecommendations] = useState([]);
 
-  const handleAction = (id, action) => {
-    setRecommendations(prev => prev.map(rec => 
-      rec.id === id ? { ...rec, status: action } : rec
-    ));
-    console.log(`Action: ${action} on recommendation ${id}`);
+  // Poll for new recommendations
+  React.useEffect(() => {
+    const fetchQueue = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/hitl/queue');
+        const data = await response.json();
+        setRecommendations(data.map(rec => ({
+          ...rec,
+          type: 'Engineering',
+          title: `Recomendación #${rec.id}`,
+          description: rec.recommendation,
+          status: rec.status.toLowerCase()
+        })));
+      } catch (error) {
+        console.error("Error polling HITL queue:", error);
+      }
+    };
+
+    const interval = setInterval(fetchQueue, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAction = async (id, action) => {
+    try {
+      await fetch('http://localhost:8000/hitl/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recommendation_id: id, status: action.toUpperCase() })
+      });
+      
+      setRecommendations(prev => prev.map(rec => 
+        rec.id === id ? { ...rec, status: action } : rec
+      ));
+    } catch (error) {
+      console.error("Error validating recommendation:", error);
+    }
   };
 
   return (
