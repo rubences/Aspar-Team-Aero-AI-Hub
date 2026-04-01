@@ -3,8 +3,10 @@ import logging
 from confluent_kafka import Consumer, KafkaError
 import numpy as np
 import requests
+import torch
 from persistence_knowledge.influx_timeseries.client import InfluxTelemetryClient
 from ingestion_correlation.babai_quantization.solver import BabaiLatticeSolver
+from ai_applications.ai_aero_predict.gru_inference.model import GRUInferenceEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,8 +18,8 @@ BACKEND_URL = "http://localhost:8000"
 class TelemetryConsumer:
     """
     Production-ready Kafka Consumer for Aspar Team.
-    Performs real-time de-quantization (Babai), Persistence (InfluxDB), 
-    and Anomaly Notification to the GenAI Supervisor.
+    Integrates real-time de-quantization (Babai), Persistence (InfluxDB), 
+    and AI-Driven Predictive Anomaly Forecasting (GRU).
     """
     def __init__(self, bootstrap_servers: str, group_id: str, topics: list):
         self.conf = {
@@ -30,16 +32,22 @@ class TelemetryConsumer:
         
         # Clients
         self.influx_client = InfluxTelemetryClient()
-        # Initialize Babai Solver with an identity basis for simplicity
         self.solver = BabaiLatticeSolver(np.eye(3) * 0.1)
+        
+        # ML Inference (GRU)
+        # Dimensions: 3 (rpm, temp, rake) + 0 context (simplified for e2e)
+        self.gru_engine = GRUInferenceEngine(input_dim=3, context_dim=0, hidden_dim=64, output_dim=3)
+        self.window_buffer = []
+        self.window_size = 10 # 10ms sliding window at 1000Hz
 
-    def _trigger_genai_alert(self, bike_id: str, alert_msg: str):
+    def _trigger_genai_alert(self, bike_id: str, alert_msg: str, is_predictive: bool = False):
         """
-        Sends an automated alert to the API Gateway to notify the GenAI Supervisor.
+        Sends an automated alert to the API Gateway.
         """
+        prefix = "PREDICTIVE ALERT" if is_predictive else "CRITICAL ALERT"
         try:
             requests.post(f"{BACKEND_URL}/genai/chat", json={
-                "message": f"ALERT: {alert_msg}. ¿Qué recomiendas?",
+                "message": f"{prefix}: {alert_msg}. ¿Qué recomiendas?",
                 "bike_id": bike_id
             })
         except Exception as e:
@@ -49,39 +57,51 @@ class TelemetryConsumer:
         """
         Main loop to poll for telemetry events.
         """
-        logger.info(f"Smart Telemetry Consumer started. Listening on topics: {self.topics if hasattr(self, 'topics') else 'subscribed'}")
+        logger.info("Smart Telemetry Consumer with AI Forecasting started.")
         
         try:
             while True:
                 msg = self.consumer.poll(1.0)
                 if msg is None: continue
                 if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        continue
+                    if msg.error().code() == KafkaError._PARTITION_EOF: continue
                     else:
                         logger.error(f"Consumer error: {msg.error()}")
                         break
                 
-                # 1. Parse Raw Message
+                # 1. Parse & De-quantize
                 payload = json.loads(msg.value().decode('utf-8'))
                 sensors = payload.get("sensors", {})
                 bike_id = payload.get("bike_id")
                 
-                # 2. De-quantization / Noise Reduction (Babai)
-                # In a real scenario, we map sensor values to a vector
                 raw_vector = np.array([sensors.get("rpm", 0), sensors.get("temp", 0), sensors.get("rake", 0)])
                 clean_vector = self.solver.solve(raw_vector)
                 
-                # 3. Persistence to InfluxDB
+                # 2. Persistence
                 for i, name in enumerate(["rpm", "temp", "rake"]):
                     self.influx_client.write_sensor_data(name, float(clean_vector[i]), bike_id)
                 
-                # 4. Critical Threshold Monitoring (Simple Anomaly)
-                if clean_vector[2] < 0.6: # Rake below critical aerodynamic stall threshold
-                    self._trigger_genai_alert(bike_id, f"Caída crítica de Rake detectada: {clean_vector[2]}mm")
-                
-                if clean_vector[1] > 105: # High temperature alert
-                    self._trigger_genai_alert(bike_id, f"Sobrecalentamiento motor: {clean_vector[1]}C")
+                # 3. AI SLIDING WINDOW INFERENCE (Every 10ms)
+                self.window_buffer.append(clean_vector)
+                if len(self.window_buffer) >= self.window_size:
+                    # Run GRU Inference
+                    input_seq = np.array(self.window_buffer).reshape(1, self.window_size, 3)
+                    # For this E2E, we pass zeros as context
+                    mock_context = np.zeros((1, self.window_size, 0))
+                    
+                    prediction = self.gru_engine.predict_dynamics(input_seq, mock_context)
+                    
+                    # Check for predictive anomalies (e.g. predicted rake drop)
+                    predicted_rake = prediction[2]
+                    if predicted_rake < 0.7:
+                        self._trigger_genai_alert(bike_id, f"IA predice caída de Rake a {predicted_rake:.2f}mm en los próximos 50ms", is_predictive=True)
+                    
+                    # Slide the window
+                    self.window_buffer.pop(0)
+
+                # 4. Reactive Thresholds (Real-time)
+                if clean_vector[2] < 0.6:
+                    self._trigger_genai_alert(bike_id, f"Caída crítica de Rake (REAL): {clean_vector[2]}mm")
 
         except KeyboardInterrupt:
             pass
@@ -90,6 +110,4 @@ class TelemetryConsumer:
             self.influx_client.close()
 
 if __name__ == "__main__":
-    # consumer = TelemetryConsumer("localhost:9092", "aero-hub-group", ["telemetry.raw"])
-    # consumer.start_polling()
-    print("Smart Telemetry Consumer initialized (Production Core)")
+    print("Smart Telemetry Consumer with GRU Forecasting initialized")

@@ -185,6 +185,7 @@ h3::before {
 
 .recommendation-card.approved { border-left-color: #00ff88; }
 .recommendation-card.rejected { border-left-color: var(--aspar-secondary); opacity: 0.5; }
+.recommendation-card.predictive { border-left-color: #bb86fc; box-shadow: 0 0 15px rgba(187, 134, 252, 0.2); }
 
 .rec-type {
   font-family: 'Roboto Mono', monospace;

@@ -11,10 +11,10 @@ const HITLValidation = () => {
         const data = await response.json();
         setRecommendations(data.map(rec => ({
           ...rec,
-          type: 'Engineering',
-          title: `Recomendación #${rec.id}`,
+          type: rec.recommendation.startsWith('PREDICTIVE') ? 'AI FORECAST' : 'ENGINEERING',
+          title: `Evento #${rec.id}`,
           description: rec.recommendation,
-          status: rec.status.toLowerCase()
+          status: rec.recommendation.startsWith('PREDICTIVE') ? 'predictive' : rec.status.toLowerCase()
         })));
       } catch (error) {
         console.error("Error polling HITL queue:", error);
