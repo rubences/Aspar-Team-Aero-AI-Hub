@@ -18,8 +18,39 @@ class BikeTelemetrySimulator:
         self.frequency = 1000 # Hz
         self.bike_id = "ASPAR-AERO-01"
         
+        # Closed-Loop Parameters
+        self.rake_offset = 0.0
+        self.control_topic = "telemetry.control"
+        
         # Simple identity lattice for noise injection
         self.lattice_basis = np.eye(3) 
+
+    def _control_listener(self):
+        """
+        Listens for real-time adjustments from the AI Gateway.
+        """
+        from confluent_kafka import Consumer
+        c = Consumer({
+            'bootstrap.servers': 'localhost:9092',
+            'group.id': 'sim-control-group',
+            'auto.offset.reset': 'latest'
+        })
+        c.subscribe([self.control_topic])
+        print(f"[CONTROL] Listening for adjustments on '{self.control_topic}'...")
+        
+        while self.running:
+            msg = c.poll(1.0)
+            if msg is None: continue
+            if msg.error(): continue
+            
+            try:
+                cmd = json.loads(msg.value().decode('utf-8'))
+                if cmd.get("param") == "rake_offset":
+                    self.rake_offset = float(cmd.get("value", 0.0))
+                    print(f"\n[CONTROL] Physics Updated: Rake Offset = {self.rake_offset}mm")
+            except Exception as e:
+                print(f"[CONTROL] Error parsing command: {e}")
+        c.close()
 
     def _inject_lattice_noise(self, vector: np.ndarray) -> np.ndarray:
         """
@@ -41,6 +72,10 @@ class BikeTelemetrySimulator:
         Main loop producing 1000 messages per second.
         """
         print(f"Starting simulation at {self.frequency}Hz on topic '{self.topic}'...")
+        
+        # Start Control Listener in background
+        threading.Thread(target=self._control_listener, daemon=True).start()
+        
         print("Press 'a' then Enter to toggle Anomaly, 'q' to Quit.")
         
         start_time = time.time()
@@ -49,10 +84,10 @@ class BikeTelemetrySimulator:
         while self.running:
             t = time.time() - start_time
             
-            # 1. Base Signal (Sinusoidal)
+            # 1. Base Signal (Sinusoidal) + Applied Offsets
             rpm = 12000 + 2000 * np.sin(t * 2)
             temp = 90 + 5 * np.sin(t * 0.5)
-            rake = 1.2 + 0.1 * np.sin(t * 1)
+            rake = (1.2 + 0.1 * np.sin(t * 1)) + self.rake_offset
             
             # 2. Apply Anomaly (Critical rake drop / Temperature spike)
             if self.anomaly_active:

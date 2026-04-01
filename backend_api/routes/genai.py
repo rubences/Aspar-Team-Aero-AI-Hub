@@ -47,14 +47,35 @@ async def chat_with_agents(request: ChatRequest, current_user: str = Depends(get
 async def list_pending_validations(current_user: str = Depends(get_current_user)):
     return hitl_queue
 
-class ValidationResponse(BaseModel):
-    recommendation_id: int
-    status: str
+from confluent_kafka import Producer
+import json
+
+# Setup Producer for Closed-Loop Control
+control_producer = Producer({'bootstrap.servers': 'localhost:9092'})
 
 @router.post("/hitl/validate")
 async def validate_recommendation(validation: ValidationResponse, current_user: str = Depends(get_current_user)):
     for rec in hitl_queue:
         if rec["id"] == validation.recommendation_id:
             rec["status"] = validation.status
+            
+            # CLOSED-LOOP LOGIC: If approved, apply the recommendation to the simulator
+            if validation.status == "APPROVED":
+                # Parse numeric recommendation (e.g. "increase rake by 1.2mm")
+                # This is simplified for the PoC; a real system would use a structured schema
+                if "rake" in rec["recommendation"].lower():
+                    try:
+                        # Extract number (primitive extraction for PoC)
+                        import re
+                        match = re.search(r"(\d+\.?\d*)", rec["recommendation"])
+                        if match:
+                            val = float(match.group(1))
+                            # Send control signal to simulator
+                            control_msg = {"param": "rake_offset", "value": val}
+                            control_producer.produce("telemetry.control", json.dumps(control_msg).encode('utf-8'))
+                            control_producer.flush()
+                    except Exception as e:
+                        print(f"Error producing control signal: {e}")
+
             return {"status": "UPDATED", "rec_id": validation.recommendation_id}
     raise HTTPException(status_code=404, detail="Not found")
