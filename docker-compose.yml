@@ -59,6 +59,7 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=password123
       - DOCKER_INFLUXDB_INIT_ORG=aspar-team
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=aspar-influx-token
     volumes:
       - influxdb-data:/var/lib/influxdb2
     networks:
@@ -159,6 +160,10 @@ services:
       - BACKEND_URL=http://api-gateway:8000
       - AUTH_USERNAME=aspar_engineer
       - AUTH_PASSWORD=aspar_pass_2024
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=aspar-influx-token
+      - INFLUXDB_ORG=aspar-team
+      - INFLUXDB_BUCKET=telemetry
     networks:
       - aero-ai-network
     depends_on:
