@@ -1,0 +1,52 @@
+# Gentle AI Development Configuration
+# Guía de desarrollo asistido por IA para Aspar SmartOps Aero Hub
+
+version: "1.0"
+project: "aspar-smartops-aero-hub"
+
+# Lenguaje de especificación preferido
+spec_language: markdown
+spec_dir: "dev_agents/engram_context/specs/"
+
+# Estilo de código
+code_style:
+  python:
+    formatter: black
+    linter: flake8
+    max_line_length: 120
+    type_hints: required
+    docstrings: google_style
+  javascript:
+    formatter: prettier
+    linter: eslint
+    framework: react
+
+# Modelo LLM preferido para asistencia de desarrollo
+llm:
+  provider: openai
+  model: gpt-4o
+  temperature: 0.1
+  context_window: 128000
+
+# Memoria persistente del agente
+memory:
+  backend: engram
+  context_path: "dev_agents/engram_context/"
+  max_context_tokens: 32000
+  retention_policy: rolling
+
+# Convenciones del proyecto
+conventions:
+  - "Usar siempre type hints en Python"
+  - "Las funciones públicas deben tener docstrings"
+  - "Los tests deben cubrir al menos el 80% del código"
+  - "Los MCP servers deben exponer un método get_mcp_manifest()"
+  - "Los agentes GenAI heredan de BaseAgent"
+  - "Los datos de telemetría se normalizan a esquema común antes de persistir"
+
+# Reglas de arquitectura
+architecture_rules:
+  - "No importar directamente de bases de datos en capa de agentes"
+  - "Los modelos ML se acceden únicamente a través de mcp_ml_core"
+  - "Toda comunicación entre servicios usa MCP o Kafka"
+  - "Autenticación siempre a través del módulo auth/ con Keycloak"

@@ -1,0 +1,46 @@
+# Aspar SmartOps Aero Hub — Python Dependencies
+
+# Web framework
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+httpx>=0.27.0
+
+# AI / ML
+torch>=2.3.0
+numpy>=1.26.0
+scikit-learn>=1.4.0
+gymnasium>=0.29.0
+
+# LLM / Agents
+langchain>=0.2.0
+langchain-core>=0.2.0
+langgraph>=0.1.0
+langchain-openai>=0.1.0
+openai>=1.30.0
+
+# Data stores
+influxdb-client>=1.43.0
+pymongo>=4.7.0
+pymilvus>=2.4.0
+minio>=7.2.0
+
+# Messaging
+kafka-python>=2.0.2
+
+# Observability
+opentelemetry-api>=1.24.0
+opentelemetry-sdk>=1.24.0
+opentelemetry-instrumentation-fastapi>=0.45b0
+prometheus-client>=0.20.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+
+# Development / Testing
+pytest>=8.2.0
+pytest-asyncio>=0.23.0
+pytest-cov>=5.0.0
+flake8>=7.0.0
+black>=24.4.0

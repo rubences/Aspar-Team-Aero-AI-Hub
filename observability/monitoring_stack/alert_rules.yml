@@ -1,0 +1,38 @@
+groups:
+  - name: aspar_smartops_alerts
+    rules:
+      - alert: BackendAPIDown
+        expr: up{job="backend_api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend API is down"
+          description: "The Aspar SmartOps backend API has been unreachable for more than 1 minute."
+
+      - alert: HighAnomalyScore
+        expr: aspar_gru_anomaly_score > 0.8
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High GRU anomaly score detected"
+          description: "GRU anomaly score for vehicle {{ $labels.vehicle_id }} exceeded 0.8."
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_group_lag > 10000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag is high"
+          description: "Consumer group {{ $labels.group }} has lag of {{ $value }} messages."
+
+      - alert: InfluxDBDown
+        expr: up{job="influxdb"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "InfluxDB is unreachable"
+          description: "InfluxDB has been down for more than 1 minute."

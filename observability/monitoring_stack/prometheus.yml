@@ -1,0 +1,43 @@
+# Prometheus scrape configuration for Aspar SmartOps Aero Hub
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "aspar-smartops"
+    environment: "production"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: "backend_api"
+    static_configs:
+      - targets: ["backend_api:8000"]
+    metrics_path: /metrics
+
+  - job_name: "influxdb"
+    static_configs:
+      - targets: ["influxdb:8086"]
+
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka-exporter:9308"]
+
+  - job_name: "milvus"
+    static_configs:
+      - targets: ["milvus:9091"]
+
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]

@@ -1,0 +1,42 @@
+# Gentleman Guardian Angel (GGA) — Configuración de auditoría de código y seguridad
+version: "1.0"
+project: "aspar-smartops-aero-hub"
+
+rules:
+  security:
+    enabled: true
+    level: strict
+    checks:
+      - sql_injection
+      - xss
+      - insecure_deserialization
+      - hardcoded_secrets
+      - open_redirect
+
+  code_quality:
+    enabled: true
+    max_complexity: 10
+    max_line_length: 120
+    enforce_type_hints: true
+
+  ai_safety:
+    enabled: true
+    prompt_injection_detection: true
+    output_validation: true
+    hallucination_guard: true
+
+  data_privacy:
+    enabled: true
+    pii_detection: true
+    telemetry_anonymization: true
+
+audit_log:
+  path: ".gga/audit.log"
+  retention_days: 90
+
+notifications:
+  on_critical: true
+  on_high: true
+  channels:
+    - slack
+    - email
