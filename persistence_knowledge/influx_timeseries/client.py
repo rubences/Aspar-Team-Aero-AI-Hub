@@ -7,12 +7,17 @@ class InfluxTelemetryClient:
     """
     Client for InfluxDB to handle high-fidelity time-series telemetry.
     """
-    def __init__(self, url: str = "http://localhost:8086", token: str = None, org: str = "aspar-team", bucket: str = "telemetry"):
-        self.client = InfluxDBClient(url=url, token=token or os.getenv("INFLUXDB_TOKEN"), org=org)
+    def __init__(self, url: str = None, token: str = None, org: str = None, bucket: str = None):
+        resolved_url = url or os.getenv("INFLUXDB_URL", "http://localhost:8086")
+        resolved_org = org or os.getenv("INFLUXDB_ORG", "aspar-team")
+        resolved_bucket = bucket or os.getenv("INFLUXDB_BUCKET", "telemetry")
+        resolved_token = token or os.getenv("INFLUXDB_TOKEN")
+
+        self.client = InfluxDBClient(url=resolved_url, token=resolved_token, org=resolved_org)
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
         self.query_api = self.client.query_api()
-        self.bucket = bucket
-        self.org = org
+        self.bucket = resolved_bucket
+        self.org = resolved_org
 
     def write_sensor_data(self, sensor_name: str, value: float, bike_id: str, tags: dict = None):
         """
