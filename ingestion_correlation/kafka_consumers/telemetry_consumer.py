@@ -2,15 +2,22 @@ import json
 import logging
 from confluent_kafka import Consumer, KafkaError
 import numpy as np
+import requests
+from persistence_knowledge.influx_timeseries.client import InfluxTelemetryClient
+from ingestion_correlation.babai_quantization.solver import BabaiLatticeSolver
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TelemetryConsumer")
 
+# Internal Service URL for Backend
+BACKEND_URL = "http://localhost:8000"
+
 class TelemetryConsumer:
     """
-    Asynchronous Kafka Consumer for Aspar Team Telemetry.
-    Connects to the telemetry stream and prepares data for decoding and normalization.
+    Production-ready Kafka Consumer for Aspar Team.
+    Performs real-time de-quantization (Babai), Persistence (InfluxDB), 
+    and Anomaly Notification to the GenAI Supervisor.
     """
     def __init__(self, bootstrap_servers: str, group_id: str, topics: list):
         self.conf = {
@@ -20,12 +27,30 @@ class TelemetryConsumer:
         }
         self.consumer = Consumer(self.conf)
         self.consumer.subscribe(topics)
+        
+        # Clients
+        self.influx_client = InfluxTelemetryClient()
+        # Initialize Babai Solver with an identity basis for simplicity
+        self.solver = BabaiLatticeSolver(np.eye(3) * 0.1)
 
-    def start_polling(self, callback):
+    def _trigger_genai_alert(self, bike_id: str, alert_msg: str):
+        """
+        Sends an automated alert to the API Gateway to notify the GenAI Supervisor.
+        """
+        try:
+            requests.post(f"{BACKEND_URL}/genai/chat", json={
+                "message": f"ALERT: {alert_msg}. ¿Qué recomiendas?",
+                "bike_id": bike_id
+            })
+        except Exception as e:
+            logger.error(f"Failed to trigger GenAI alert: {e}")
+
+    def start_polling(self):
         """
         Main loop to poll for telemetry events.
         """
-        logger.info(f"Starting telemetry consumer on topics: {self.consumer.list_topics()}")
+        logger.info(f"Smart Telemetry Consumer started. Listening on topics: {self.topics if hasattr(self, 'topics') else 'subscribed'}")
+        
         try:
             while True:
                 msg = self.consumer.poll(1.0)
@@ -37,21 +62,34 @@ class TelemetryConsumer:
                         logger.error(f"Consumer error: {msg.error()}")
                         break
                 
-                # Process message
+                # 1. Parse Raw Message
                 payload = json.loads(msg.value().decode('utf-8'))
-                callback(payload)
+                sensors = payload.get("sensors", {})
+                bike_id = payload.get("bike_id")
                 
+                # 2. De-quantization / Noise Reduction (Babai)
+                # In a real scenario, we map sensor values to a vector
+                raw_vector = np.array([sensors.get("rpm", 0), sensors.get("temp", 0), sensors.get("rake", 0)])
+                clean_vector = self.solver.solve(raw_vector)
+                
+                # 3. Persistence to InfluxDB
+                for i, name in enumerate(["rpm", "temp", "rake"]):
+                    self.influx_client.write_sensor_data(name, float(clean_vector[i]), bike_id)
+                
+                # 4. Critical Threshold Monitoring (Simple Anomaly)
+                if clean_vector[2] < 0.6: # Rake below critical aerodynamic stall threshold
+                    self._trigger_genai_alert(bike_id, f"Caída crítica de Rake detectada: {clean_vector[2]}mm")
+                
+                if clean_vector[1] > 105: # High temperature alert
+                    self._trigger_genai_alert(bike_id, f"Sobrecalentamiento motor: {clean_vector[1]}C")
+
         except KeyboardInterrupt:
             pass
         finally:
             self.consumer.close()
+            self.influx_client.close()
 
 if __name__ == "__main__":
-    # Mock callback for testing
-    def process_telemetry(data):
-        print(f"Received Telemetry: {data}")
-
-    # For development, we skip actual Kafka connection if not running
-    # consumer = TelemetryConsumer("localhost:9092", "aero-hub-group", ["live_telemetry"])
-    # consumer.start_polling(process_telemetry)
-    print("Telemetry Consumer initialized (Skeleton)")
+    # consumer = TelemetryConsumer("localhost:9092", "aero-hub-group", ["telemetry.raw"])
+    # consumer.start_polling()
+    print("Smart Telemetry Consumer initialized (Production Core)")
