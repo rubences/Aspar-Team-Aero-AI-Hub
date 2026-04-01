@@ -1,44 +1,50 @@
-import influxdb_client
+from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
-import time
+import datetime
+import os
 
 class InfluxTelemetryClient:
     """
-    High-throughput timeseries writer for InfluxDB.
-    Stores raw and reconstructed sensor data.
+    Client for InfluxDB to handle high-fidelity time-series telemetry.
     """
-    def __init__(self, url: str, token: str, org: str, bucket: str):
-        self.client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
+    def __init__(self, url: str = "http://localhost:8086", token: str = None, org: str = "aspar-team", bucket: str = "telemetry"):
+        self.client = InfluxDBClient(url=url, token=token or os.getenv("INFLUXDB_TOKEN"), org=org)
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
+        self.query_api = self.client.query_api()
         self.bucket = bucket
         self.org = org
 
-    def write_snapshot(self, device_id: str, sensor_data: dict, timestamp: int = None):
+    def write_sensor_data(self, sensor_name: str, value: float, bike_id: str, tags: dict = None):
         """
-        Writes a single telemetry snapshot to InfluxDB.
+        Writes a single telemetry point.
         """
-        ts = timestamp or int(time.time() * 1e9) # Nanoseconds
-        point = influxdb_client.Point("telemetry_snapshot") \
-            .tag("bike_id", device_id)
+        point = Point("telemetry") \
+            .tag("bike_id", bike_id) \
+            .tag("sensor", sensor_name) \
+            .field("value", value) \
+            .time(datetime.datetime.now(datetime.timezone.utc), WritePrecision.NS)
         
-        for key, value in sensor_data.items():
-            point.field(key, float(value))
-            
-        point.time(ts)
+        if tags:
+            for key, val in tags.items():
+                point.tag(key, val)
+                
         self.write_api.write(bucket=self.bucket, org=self.org, record=point)
 
-    def query_window(self, bike_id: str, window_seconds: int = 60):
+    def query_recent_telemetry(self, bike_id: str, sensor_name: str, range_start: str = "-15m"):
         """
-        Queries telemetry window using Flux.
+        Queries telemetry for a specific bike and sensor.
         """
-        query_api = self.client.query_api()
-        flux = f'from(bucket:"{self.bucket}") \
-                |> range(start: -{window_seconds}s) \
-                |> filter(fn: (r) => r["_measurement"] == "telemetry_snapshot") \
-                |> filter(fn: (r) => r["bike_id"] == "{bike_id}")'
+        query = f'from(bucket: "{self.bucket}") \
+            |> range(start: {range_start}) \
+            |> filter(fn: (r) => r["_measurement"] == "telemetry") \
+            |> filter(fn: (r) => r["bike_id"] == "{bike_id}") \
+            |> filter(fn: (r) => r["sensor"] == "{sensor_name}")'
         
-        return query_api.query(flux, org=self.org)
+        return self.query_api.query(org=self.org, query=query)
+
+    def close(self):
+        self.client.close()
 
 if __name__ == "__main__":
-    # client = InfluxTelemetryClient("http://localhost:8086", "token", "aspar", "telemetry")
-    print("InfluxDB Client initialized (Skeleton)")
+    # client = InfluxTelemetryClient()
+    print("InfluxDB Telemetry Client initialized (Skeleton)")

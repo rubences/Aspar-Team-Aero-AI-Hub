@@ -1,26 +1,42 @@
-import redis
+from persistence_knowledge.mongo_docs.client import MongoEventClient
+import datetime
 
-class MemoryManager:
+class AgentMemoryManager:
     """
-    Manages Short-Term (Redis) and Long-Term (Engram/Filesystem) memory for agents.
+    Maintains persistent memory of conversations and mechanical setups.
+    Interface between GenAI agents and the MongoDB persistence layer.
     """
-    def __init__(self, persistence_path: str):
-        self.persistence_path = persistence_path
-        # self.cache = redis.Redis(host='localhost', port=6379, db=0)
+    def __init__(self, db_uri: str = "mongodb://localhost:27017/"):
+        self.db = MongoEventClient(db_uri)
 
-    def save_interaction(self, session_id: str, message: str, role: str):
+    def store_conversation(self, bike_id: str, messages: list, session_id: str):
         """
-        Saves chat history for session-based reasoning.
+        Stores serialized conversation history for later retrieval.
         """
-        # Implementation for context window management
-        print(f"MemoryManager: Saved {role} interaction for session {session_id}")
+        data = {
+            "session_id": session_id,
+            "bike_id": bike_id,
+            "messages": [msg.dict() if hasattr(msg, 'dict') else str(msg) for msg in messages]
+        }
+        return self.db.log_event("genai_conversation", "supervisor_agent", data)
 
-    def archive_context(self, domain: str, key_decision: str):
+    def store_mechanical_recommendation(self, bike_id: str, recommendation: str, status: str = "PENDING"):
         """
-        Writes significant decisions to Engram.
+        Records a specific engineering recommendation for human-in-the-loop validation.
         """
-        with open(f"{self.persistence_path}/domain_{domain}.log", "a") as f:
-            f.write(f"{key_decision}\n")
+        data = {
+            "recommendation": recommendation,
+            "status": status,
+            "created_at": datetime.datetime.now(datetime.timezone.utc)
+        }
+        return self.db.log_event("mechanical_recommendation", "aero_engineer", data)
+
+    def get_last_approved_setup(self, bike_id: str):
+        """
+        Retrieves the most recent setup configuration that was signed off by the operator.
+        """
+        return self.db.get_latest_setup(bike_id)
 
 if __name__ == "__main__":
-    print("Memory Manager initialized")
+    # memory = AgentMemoryManager()
+    print("Agent Memory Manager initialized (Skeleton)")

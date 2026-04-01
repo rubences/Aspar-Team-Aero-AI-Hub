@@ -1,85 +1,74 @@
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import numpy as np
-import sys
-import os
+import requests
 
-# Adjust path to import local modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+app = FastAPI(title="Aspar Aero Hub Gateway")
 
-# Domain Layer Imports
-from ingestion_correlation.babai_quantization.decoder import BabaiDecoder
-from ingestion_correlation.normalizers.standard_schema import TelemetryNormalizer
-from ai_applications.ai_aero_predict.gru_inference.model import GRUInferenceEngine
-from ai_applications.ai_fault_diagnosis.diagnostics import FaultDiagnosisAgent
-from genai_agents.edge_rag_engine.engine import EdgeRAGEngine
-from genai_agents.supervisor_agent import orchestrator
+# Internal service URLs (would be environment variables in production)
+MCP_TELEMETRY_URL = "http://localhost:8001"
+MCP_ML_CORE_URL = "http://localhost:8002"
 
-app = FastAPI(title="Aspar-Team-Aero-AI-Hub Central API")
-
-# Initialize Domain Engines
-feature_map = {"speed": 0, "rpm": 1, "lean_angle": 2, "throttle": 3}
-normalizer = TelemetryNormalizer(feature_map)
-babai_decoder = BabaiDecoder(np.eye(len(feature_map)))
-gru_engine = GRUInferenceEngine(len(feature_map), 64, 128, 5)
-rag_engine = EdgeRAGEngine(64)
-diagnostician = FaultDiagnosisAgent()
-
-class TelemetryPayload(BaseModel):
+class SessionMetadata(BaseModel):
     bike_id: str
-    quantized_vector: list # Int indices
+    track: str
+    driver: str
 
-@app.post("/api/v1/telemetry/ingest")
-async def ingest(payload: TelemetryPayload):
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Aspar Team Aero-AI-Hub Backend API"}
+
+@app.post("/sessions/create")
+def create_session(metadata: SessionMetadata):
     """
-    Unified Ingestion Endpoint: Decodes, Diagnoses, and Predicts in one flow.
+    Registers a new racing session in the MongoDB store.
+    """
+    # Simple placeholder for recording a session
+    return {"status": "SUCCESS", "session_id": "session-2024-001"}
+
+@app.get("/telemetry/active")
+def get_live_metrics(bike_id: str):
+    """
+    Proxies calls to the Telemetry MCP Server.
     """
     try:
-        # 1. Decode Lattice
-        z = np.array(payload.quantized_vector, dtype=int)
-        raw_vec = babai_decoder.decode(z)
-        
-        # 2. Denormalize for Diagnostics
-        readable_data = normalizer.denormalize(raw_vec)
-        alerts = diagnostician.diagnose(readable_data)
-        
-        # 3. Retrieve Context & Predict Dynamics
-        mock_query = np.random.randn(64)
-        history = rag_engine.retrieve(mock_query, k=1)
-        ctx = history[0][1]["vector"] if history else np.zeros(64)
-        
-        prediction = gru_engine.predict_dynamics(raw_vec.reshape(1, -1), ctx.reshape(1, -1))
-        
-        return {
-            "bike_id": payload.bike_id,
-            "status": "success",
-            "telemetry": readable_data,
-            "alerts": alerts,
-            "prediction": prediction.tolist()
-        }
+        response = requests.get(f"{MCP_TELEMETRY_URL}/telemetry/query", params={"bike_id": bike_id, "sensor": "speed"})
+        return response.json()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=502, detail=f"Error connecting to Telemetry service: {e}")
 
-@app.post("/api/v1/agent/chat")
-async def chat(query: str = Body(..., embed=True)):
+# In-memory storage for pending validation (for development)
+hitl_queue = []
+
+class ValidationResponse(BaseModel):
+    recommendation_id: int
+    status: str # "APPROVED" or "REJECTED"
+
+@app.get("/hitl/queue")
+def list_pending_validations():
     """
-    Routes natural language queries to the LangGraph supervisor.
+    Returns the list of recommendations awaiting human sign-off.
     """
-    try:
-        initial_state = {"messages": [query], "next_agent": ""}
-        results = []
-        for output in orchestrator.stream(initial_state):
-            results.append(output)
-        
-        # Extract last meaningful message
-        final_response = "No se pudo obtener respuesta del agente."
-        for res in results:
-            if "messages" in res:
-                final_response = res["messages"][-1]
-                
-        return {"response": final_response}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return hitl_queue
+
+@app.post("/hitl/validate")
+def validate_recommendation(validation: ValidationResponse):
+    """
+    Receives the sign-off or rejection from the operator interface.
+    Updates the HITL state and allows the orchestrator to proceed.
+    """
+    for rec in hitl_queue:
+        if rec["id"] == validation.recommendation_id:
+            rec["status"] = validation.status
+            return {"status": "UPDATED", "recommendation_id": validation.recommendation_id}
+    
+    raise HTTPException(status_code=404, detail="Recommendation ID not found in queue")
+
+@app.get("/health")
+def system_health():
+    """
+    Standard health check endpoint for the entire gateway.
+    """
+    return {"status": "HEALTHY", "v": "1.0.0", "queue_size": len(hitl_queue)}
 
 if __name__ == "__main__":
     import uvicorn
