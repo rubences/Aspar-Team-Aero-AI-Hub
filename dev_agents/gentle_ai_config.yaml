@@ -1,0 +1,16 @@
+# Gentle AI Agent Configuration
+project_name: Aspar-Team-Aero-AI-Hub
+architecture: Screaming Architecture (Domain-Oriented)
+style: Microservices
+agent_mode: Advanced Agentic Coding
+memory_system: Engram
+security_auditor: Gentleman-Guardian-Angel
+
+domains:
+  - ingestion: ingestion_correlation
+  - persistence: persistence_knowledge
+  - analytics: ai_applications
+  - genai: genai_agents
+  - interface: unified_operator_interface
+  - connectors: mcp_servers
+  - backend: backend_api

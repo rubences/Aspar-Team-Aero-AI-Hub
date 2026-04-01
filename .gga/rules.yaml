@@ -1,0 +1,20 @@
+# Gentleman Guardian Angel (GGA) Security Policy
+
+rules:
+  - id: SECURITY_HITL_VERIFY
+    name: Mandatory HITL for Operational Impact
+    description: All AI-driven operational recommendations (e.g., aero adjustments) must be validated via the `unified_operator_interface`.
+    severity: CRITICAL
+    type: ARCHITECTURAL
+
+  - id: DATA_COMPRESSION_VALIDATION
+    name: Telemetry Integrity Check
+    description: Babai-reconstructed telemetry must be within 1% error margin from original.
+    severity: HIGH
+    type: FUNCTIONAL
+
+  - id: MICROSERVICE_ISOLATION
+    name: Decoupled Persistence
+    description: Microservices must only access their designated persistence backends (e.g., Influx for TS, MongoDB for Docs).
+    severity: MEDIUM
+    type: ARCHITECTURAL
