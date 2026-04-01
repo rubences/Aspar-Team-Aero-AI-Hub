@@ -11,6 +11,8 @@ services:
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
     command: etcd -advertise-client-urls http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    networks:
+      - aero-ai-network
 
   minio:
     container_name: milvus-minio
@@ -21,6 +23,8 @@ services:
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/export
     command: minio server /export
+    networks:
+      - aero-ai-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -35,12 +39,14 @@ services:
       ETCD_ENDPOINTS: etcd:2379
       MINIO_ADDRESS: minio:9000
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
+      - milvus-data:/var/lib/milvus
     ports:
       - "19530:19530"
     depends_on:
       - "etcd"
       - "minio"
+    networks:
+      - aero-ai-network
 
   influxdb:
     image: influxdb:2.7
@@ -55,6 +61,8 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
     volumes:
       - influxdb-data:/var/lib/influxdb2
+    networks:
+      - aero-ai-network
 
   mongodb:
     image: mongo:6.0
@@ -63,6 +71,8 @@ services:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
+    networks:
+      - aero-ai-network
 
   # --- Messaging ---
   kafka:
@@ -77,7 +87,68 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - aero-ai-network
+
+  # --- Custom Microservices ---
+  api-gateway:
+    build: .
+    container_name: aspar-api-gateway
+    command: ["python", "backend_api/main.py"]
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - aero-ai-network
+    depends_on:
+      - mongodb
+      - mcp-telemetry
+      - mcp-ml-core
+    restart: on-failure
+
+  mcp-telemetry:
+    build: .
+    container_name: aspar-mcp-telemetry
+    command: ["python", "mcp_servers/mcp_telemetry/main.py"]
+    ports:
+      - "8001:8001"
+    networks:
+      - aero-ai-network
+    depends_on:
+      - influxdb
+    restart: on-failure
+
+  mcp-ml-core:
+    build: .
+    container_name: aspar-mcp-ml-core
+    command: ["python", "mcp_servers/mcp_ml_core/main.py"]
+    ports:
+      - "8002:8002"
+    networks:
+      - aero-ai-network
+    restart: on-failure
+
+  telemetry-ingestor:
+    build: .
+    container_name: aspar-telemetry-ingestor
+    command: ["python", "ingestion_correlation/kafka_consumers/telemetry_consumer.py"]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - aero-ai-network
+    depends_on:
+      - kafka
+      - influxdb
+    restart: on-failure
+
+networks:
+  aero-ai-network:
+    driver: bridge
 
 volumes:
   influxdb-data:
   mongodb-data:
+  milvus-data:
+  minio-data:
