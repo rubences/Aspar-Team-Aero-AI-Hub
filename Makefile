@@ -9,6 +9,8 @@ help:
 	@echo "make up          : Start infrastructure (Databases, Kafka, MinIO)"
 	@echo "make down        : Stop all services and containers"
 	@echo "make health      : Run system diagnostic check (13+ services)"
+	@echo "make metrics     : Open Prometheus/Grafana metrics endpoint"
+	@echo "make replay      : Start Session Replay at 5x speed"
 	@echo "make sim-normal  : Start 100Hz Telemetry Simulation"
 	@echo "make sim-stress  : Start 1000Hz Stress Test + Anomaly injection"
 	@echo "make ui-dev      : Start React Operator Interface"
