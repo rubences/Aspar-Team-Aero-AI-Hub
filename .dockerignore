@@ -1,0 +1,9 @@
+volumes/
+volumes/**
+.git/
+.git/**
+node_modules/
+unified_operator_interface/node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc

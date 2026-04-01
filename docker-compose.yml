@@ -21,6 +21,8 @@ services:
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/export
     command: minio server /export
+    ports:
+      - "9000:9000"
     networks:
       - aero-ai-network
     healthcheck:

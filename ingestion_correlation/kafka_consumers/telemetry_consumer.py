@@ -28,7 +28,8 @@ class TelemetryConsumer:
         self.conf = {
             'bootstrap.servers': bootstrap_servers,
             'group.id': group_id,
-            'auto.offset.reset': 'earliest'
+            'auto.offset.reset': 'earliest',
+            'allow.auto.create.topics': True
         }
         self.consumer = Consumer(self.conf)
         self.consumer.subscribe(topics)
@@ -98,10 +99,11 @@ class TelemetryConsumer:
                 msg = self.consumer.poll(1.0)
                 if msg is None: continue
                 if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF: continue
-                    else:
-                        logger.error(f"Consumer error: {msg.error()}")
-                        break
+                    err_code = msg.error().code()
+                    if err_code in (KafkaError._PARTITION_EOF, KafkaError.UNKNOWN_TOPIC_OR_PART):
+                        continue
+                    logger.error(f"Consumer error: {msg.error()}")
+                    break
                 
                 # 1. Parse & De-quantize
                 payload = json.loads(msg.value().decode('utf-8'))
