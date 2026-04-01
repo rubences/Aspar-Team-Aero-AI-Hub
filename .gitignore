@@ -1,15 +1,41 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+.pytest_cache/
+
+# Environment
 .env
+.env.local
 venv/
 ENV/
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# Logs and temp
 *.log
+*.bak
+
+# OS
 .DS_Store
-node_modules/
+Thumbs.db
+
+# Build artifacts
 dist/
 build/
-*.bak
-*.swp
+
+# Frontend
+node_modules/
+unified_operator_interface/node_modules/
+.next/
+
+# Docker and runtime data
+volumes/
+.docker/
+*.tar.gz
