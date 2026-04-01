@@ -1,0 +1,152 @@
+:root {
+  --aspar-blue: #0a192f;
+  --aspar-teal: #64ffda;
+  --aspar-slate: #8892b0;
+  --aspar-white: #e6f1ff;
+  --bg-color: #020c1b;
+  --card-bg: #112240;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--aspar-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 1rem 2rem;
+  background: var(--aspar-blue);
+  border-bottom: 1px solid var(--aspar-teal);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  color: var(--aspar-teal);
+  margin: 0;
+}
+
+nav button {
+  background: transparent;
+  border: 1px solid var(--aspar-teal);
+  color: var(--aspar-teal);
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+nav button:hover {
+  background: rgba(100, 255, 218, 0.1);
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+section {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 255, 218, 0.1);
+}
+
+h2, h3 {
+  color: var(--aspar-teal);
+  margin-top: 0;
+}
+
+.chart-placeholder, .viewport-3d-placeholder {
+  height: 300px;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--aspar-slate);
+  color: var(--aspar-slate);
+  font-style: italic;
+}
+
+.p-disclaimer {
+  font-size: 0.8rem;
+  color: #ff4d4d;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.recommendation-card {
+  background: var(--aspar-blue);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--aspar-teal);
+}
+
+.recommendation-card.approved { border-left-color: #4caf50; }
+.recommendation-card.rejected { border-left-color: #f44336; opacity: 0.6; }
+
+.rec-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.rec-type {
+  font-size: 0.7rem;
+  background: var(--aspar-teal);
+  color: var(--aspar-blue);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.rec-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.approve-btn {
+  background: #4caf50;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.reject-btn {
+  background: #f44336;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--aspar-slate);
+  border-top: 1px solid rgba(100, 255, 218, 0.1);
+}

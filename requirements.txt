@@ -1,0 +1,41 @@
+# Aspar-Team-Aero-AI-Hub Requirements
+
+# Backend & API
+fastapi
+uvicorn[standard]
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Ingestion & Processing
+confluent-kafka
+numpy
+scipy
+pandas
+
+# AI & ML
+torch
+transformers
+sentence-transformers
+scikit-learn
+faiss-cpu
+
+# Persistence Clients
+pymilvus
+influxdb-client
+pymongo
+minio
+redis
+
+# Multi-Agent Orchestration
+langgraph
+langchain
+langchain-openai
+langchain-anthropic
+
+# Observability
+prometheus-client
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
