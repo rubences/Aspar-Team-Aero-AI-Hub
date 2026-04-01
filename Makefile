@@ -1,6 +1,6 @@
 # --- Aspar Team Aero-AI-Hub Lifecycle Management ---
 
-.PHONY: help up down restart logs health sim-normal sim-stress ui-install ui-dev shell-api
+.PHONY: help up down restart logs health smoke metrics replay run-poc sim-normal sim-stress ui-install ui-dev shell-api
 
 # Default help
 help:
@@ -9,6 +9,7 @@ help:
 	@echo "make up          : Start infrastructure (Databases, Kafka, MinIO)"
 	@echo "make down        : Stop all services and containers"
 	@echo "make health      : Run system diagnostic check (13+ services)"
+	@echo "make smoke       : Run end-to-end API/MCP smoke validation"
 	@echo "make metrics     : Open Prometheus/Grafana metrics endpoint"
 	@echo "make replay      : Start Session Replay at 5x speed"
 	@echo "make run-poc     : EXECUTE FULL MISSION PoC (Start All)"
@@ -42,6 +43,9 @@ run-poc:
 # Diagnostics
 health:
 	python scripts/system_health.py
+
+smoke:
+	python scripts/smoke_test_stack.py
 
 # Simulation & Stress Tests
 sim-normal:
