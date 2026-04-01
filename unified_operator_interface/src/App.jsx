@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import HITLValidation from './components/HITLValidation';
+import ChatPanel from './chat_interface/ChatPanel';
+import Viewport3D from './Viewport3D';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,14 +24,18 @@ function App() {
               <div className="chart-placeholder">Monitorizando...</div>
             </section>
             
+            <section className="chat-panel-section">
+              <ChatPanel />
+            </section>
+
             <section className="hitl-panel">
               <HITLValidation />
             </section>
           </div>
         ) : (
-          <div className="aero-viewport">
-            <h2>Viewport 3D Aerodinámico</h2>
-            <div className="viewport-3d-placeholder">Visualizando flujos...</div>
+          <div className="aero-viewport-container">
+            <h2>Viewport 3D Aerodinámico (PINN Flow)</h2>
+            <Viewport3D />
           </div>
         )}
       </main>

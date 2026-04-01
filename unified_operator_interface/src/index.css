@@ -143,10 +143,80 @@ h2, h3 {
   cursor: pointer;
 }
 
-.app-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.8rem;
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 350px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.message {
+  margin-bottom: 8px;
+}
+
+.message.user { color: var(--aspar-teal); }
+.message.assistant { color: var(--aspar-white); }
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-area input {
+  flex: 1;
+  background: var(--aspar-blue);
+  border: 1px solid var(--aspar-slate);
+  color: white;
+  padding: 8px;
+}
+
+.chat-input-area button {
+  background: var(--aspar-teal);
+  color: var(--aspar-blue);
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.viewport-3d-container {
+  position: relative;
+  height: 500px;
+  background: radial-gradient(circle, #112240 0%, #020c1b 100%);
+  border: 1px solid var(--aspar-teal);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewport-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--aspar-teal);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.viewport-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--aspar-slate);
-  border-top: 1px solid rgba(100, 255, 218, 0.1);
+  font-style: italic;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
 }
