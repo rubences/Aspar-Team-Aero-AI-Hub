@@ -29,6 +29,12 @@ restart:
 logs:
 	docker logs -f aspar-api-gateway
 
+metrics:
+	curl http://localhost:8000/metrics
+
+replay:
+	python scripts/replay_session.py --speed 5.0
+
 # Diagnostics
 health:
 	python scripts/system_health.py
