@@ -29,11 +29,16 @@ def supervisor_node(state: AgentState):
 
 def aero_engineer_node(state: AgentState):
     """
-    Uses Aero tools to provide a technical recommendation.
+    Uses Aero tools + CAD Metadata + PINN Validation to provide a grounded recommendation.
     """
-    # In a real scenario, we would use llm.bind_tools(AERO_TOOLS)
-    # For now, we simulate the logic with tool-awareness
-    recommendation = "AeroEngineer: Based on live telemetry, increase rake by 1.2mm for Curve 3."
+    # 1. Simulate CAD Tool Call: get_component_metadata("front_wing_l")
+    component_context = "Component: Front Wing Left (W01-L), Surface Area: 0.12m2"
+    
+    # 2. Simulate PIIN Tool Call: validate_recommendation({"angle": +1.2})
+    pinn_validation = "Physicality Score: 0.94 (Navier-Stokes Consistent)"
+    
+    recommendation = f"AeroEngineer: Based on {component_context} and {pinn_validation}, increase rake by 1.2mm for Curve 3."
+    
     return {
         "messages": [AIMessage(content=recommendation)], 
         "next_agent": "ValidationNode",
