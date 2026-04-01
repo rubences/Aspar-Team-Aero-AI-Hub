@@ -7,7 +7,7 @@ const HITLValidation = ({ token }) => {
   React.useEffect(() => {
     const fetchQueue = async () => {
       try {
-        const response = await fetch('http://localhost:8000/hitl/queue', {
+        const response = await fetch('http://localhost:8000/genai/hitl/queue', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -29,7 +29,7 @@ const HITLValidation = ({ token }) => {
 
   const handleAction = async (id, action) => {
     try {
-      await fetch('http://localhost:8000/hitl/validate', {
+      await fetch('http://localhost:8000/genai/hitl/validate', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

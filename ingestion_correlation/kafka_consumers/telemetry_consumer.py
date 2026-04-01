@@ -4,6 +4,7 @@ from confluent_kafka import Consumer, KafkaError
 import numpy as np
 import requests
 import torch
+import os
 from persistence_knowledge.influx_timeseries.client import InfluxTelemetryClient
 from ingestion_correlation.babai_quantization.solver import BabaiLatticeSolver
 from ai_applications.ai_aero_predict.gru_inference.model import GRUInferenceEngine
@@ -13,7 +14,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TelemetryConsumer")
 
 # Internal Service URL for Backend
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+AUTH_USERNAME = os.getenv("AUTH_USERNAME", "aspar_engineer")
+AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "aspar_pass_2024")
 
 class TelemetryConsumer:
     """
@@ -39,6 +42,28 @@ class TelemetryConsumer:
         self.gru_engine = GRUInferenceEngine(input_dim=3, context_dim=0, hidden_dim=64, output_dim=3)
         self.window_buffer = []
         self.window_size = 10 # 10ms sliding window at 1000Hz
+        self._access_token = None
+
+    def _get_access_token(self):
+        """
+        Requests and caches an access token for protected backend endpoints.
+        """
+        if self._access_token:
+            return self._access_token
+
+        try:
+            response = requests.post(
+                f"{BACKEND_URL}/auth/token",
+                data={"username": AUTH_USERNAME, "password": AUTH_PASSWORD},
+                timeout=5
+            )
+            if response.ok:
+                self._access_token = response.json().get("access_token")
+                return self._access_token
+            logger.error(f"Auth failed for telemetry consumer: {response.status_code} {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to authenticate telemetry consumer: {e}")
+        return None
 
     def _trigger_genai_alert(self, bike_id: str, alert_msg: str, is_predictive: bool = False):
         """
@@ -46,10 +71,19 @@ class TelemetryConsumer:
         """
         prefix = "PREDICTIVE ALERT" if is_predictive else "CRITICAL ALERT"
         try:
-            requests.post(f"{BACKEND_URL}/genai/chat", json={
-                "message": f"{prefix}: {alert_msg}. ¿Qué recomiendas?",
-                "bike_id": bike_id
-            })
+            token = self._get_access_token()
+            if not token:
+                return
+
+            requests.post(
+                f"{BACKEND_URL}/genai/chat",
+                json={
+                    "message": f"{prefix}: {alert_msg}. ¿Qué recomiendas?",
+                    "bike_id": bike_id
+                },
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=5
+            )
         except Exception as e:
             logger.error(f"Failed to trigger GenAI alert: {e}")
 
@@ -110,4 +144,9 @@ class TelemetryConsumer:
             self.influx_client.close()
 
 if __name__ == "__main__":
-    print("Smart Telemetry Consumer with GRU Forecasting initialized")
+    bootstrap = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    group_id = os.getenv("KAFKA_GROUP_ID", "aspar_telemetry_group")
+    topics = os.getenv("KAFKA_TOPICS", "telemetry.raw").split(",")
+
+    consumer = TelemetryConsumer(bootstrap_servers=bootstrap, group_id=group_id, topics=topics)
+    consumer.start_polling()

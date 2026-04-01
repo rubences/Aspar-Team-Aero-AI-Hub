@@ -15,7 +15,7 @@ def check_hitl_queue():
     Checks if a recommendation has been triggered in the HITL queue.
     """
     try:
-        response = requests.get(f"{BACKEND_URL}/hitl/queue")
+        response = requests.get(f"{BACKEND_URL}/genai/hitl/queue")
         if response.status_code == 200:
             queue = response.json()
             return queue

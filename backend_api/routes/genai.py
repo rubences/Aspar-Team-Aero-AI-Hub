@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+import os
 from genai_agents.supervisor_agent import orchestrator
 from langchain_core.messages import HumanMessage
 from backend_api.auth.core import get_current_user
@@ -12,6 +13,10 @@ hitl_queue = []
 class ChatRequest(BaseModel):
     message: str
     bike_id: str
+
+class ValidationResponse(BaseModel):
+    recommendation_id: int
+    status: str
 
 @router.post("/chat")
 async def chat_with_agents(request: ChatRequest, current_user: str = Depends(get_current_user)):
@@ -51,7 +56,7 @@ from confluent_kafka import Producer
 import json
 
 # Setup Producer for Closed-Loop Control
-control_producer = Producer({'bootstrap.servers': 'localhost:9092'})
+control_producer = Producer({'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')})
 
 @router.post("/hitl/validate")
 async def validate_recommendation(validation: ValidationResponse, current_user: str = Depends(get_current_user)):
