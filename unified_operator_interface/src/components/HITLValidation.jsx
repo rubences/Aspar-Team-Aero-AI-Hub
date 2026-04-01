@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 
-const HITLValidation = () => {
+const HITLValidation = ({ token }) => {
   const [recommendations, setRecommendations] = useState([]);
 
   // Poll for new recommendations
   React.useEffect(() => {
     const fetchQueue = async () => {
       try {
-        const response = await fetch('http://localhost:8000/hitl/queue');
+        const response = await fetch('http://localhost:8000/hitl/queue', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const data = await response.json();
         setRecommendations(data.map(rec => ({
           ...rec,
@@ -23,13 +25,16 @@ const HITLValidation = () => {
 
     const interval = setInterval(fetchQueue, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
   const handleAction = async (id, action) => {
     try {
       await fetch('http://localhost:8000/hitl/validate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ recommendation_id: id, status: action.toUpperCase() })
       });
       

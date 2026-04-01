@@ -11,6 +11,7 @@ help:
 	@echo "make health      : Run system diagnostic check (13+ services)"
 	@echo "make metrics     : Open Prometheus/Grafana metrics endpoint"
 	@echo "make replay      : Start Session Replay at 5x speed"
+	@echo "make run-poc     : EXECUTE FULL MISSION PoC (Start All)"
 	@echo "make sim-normal  : Start 100Hz Telemetry Simulation"
 	@echo "make sim-stress  : Start 1000Hz Stress Test + Anomaly injection"
 	@echo "make ui-dev      : Start React Operator Interface"
@@ -34,6 +35,9 @@ metrics:
 
 replay:
 	python scripts/replay_session.py --speed 5.0
+
+run-poc:
+	python scripts/run_poc_mission.py
 
 # Diagnostics
 health:

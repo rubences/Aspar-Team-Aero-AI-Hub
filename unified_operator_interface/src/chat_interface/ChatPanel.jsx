@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ChatPanel = () => {
+const ChatPanel = ({ token }) => {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hola, soy el Supervisor de Aspar Aero Hub. ¿En qué puedo ayudarte hoy?' }
   ]);
@@ -16,7 +16,10 @@ const ChatPanel = () => {
     try {
       const response = await fetch('http://localhost:8000/genai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
         body: JSON.stringify({ message: input, bike_id: 'ASPAR-AERO-01' })
       });
       

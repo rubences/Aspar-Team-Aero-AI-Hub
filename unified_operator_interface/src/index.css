@@ -235,23 +235,92 @@ h3::before {
   overflow: hidden;
 }
 
-.viewport-overlay {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0,0,0,0.6);
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--aspar-border);
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.8rem;
-  color: var(--aspar-primary);
+/* PoC Readiness: Login & Metrics */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--aspar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.p-disclaimer {
-  color: var(--aspar-secondary);
-  font-size: 0.75rem;
+.login-card {
+  background: var(--aspar-card);
+  padding: 3rem;
+  border-radius: 12px;
+  border: 1px solid var(--aspar-primary);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: var(--glow);
+}
+
+.login-logo {
+  font-weight: 800;
+  letter-spacing: 5px;
+  color: var(--aspar-primary);
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--aspar-border);
+  padding: 12px;
+  border-radius: 6px;
+  color: white;
+  box-sizing: border-box;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.metric-box {
+  background: rgba(255,255,255,0.02);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.metric-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.5rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  color: #fff;
+  margin: 5px 0;
+}
+
+.health-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 15px;
+}
+
+.health-dot.ONLINE { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+.health-dot.OFFLINE { background: #ff0055; }
+
+.logout-btn {
+  background: transparent !important;
+  border: 1px solid var(--aspar-secondary) !important;
+  color: var(--aspar-secondary) !important;
+  margin-left: 20px;
 }
