@@ -187,7 +187,7 @@ class TechnicalReportGenerator:
             "pitching_at_238kmh":    self.goiania_calc.pitching_moment_analysis(deceleration_g=1.42),
             "trail_sensitivity":     self.goiania_calc.trail_sensitivity_to_rake(delta_rake_deg=0.48),
             "anti_squat_analysis":   self.goiania_calc.anti_squat_with_pivot_adjustment(pivot_delta_mm=0),
-            "gearing_interaction":  self.goiania_calc.chain_gearing_antisquat_interaction(14, 40),
+            "gearing_interaction":  self.base_calc.chain_gearing_antisquat_interaction(14, 40),
             "proposed_configuration": self.goiania_calc.proposed_goiania_configuration(),
             "mechanical_summary": {
                 "wheelbase_delta_mm":    12,

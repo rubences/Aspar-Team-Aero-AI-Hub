@@ -176,7 +176,7 @@ def run_chassis_analysis() -> None:
            fail_text="REQUIERE AJUSTE ADICIONAL DEL PIVOTE")
 
     section("Interacción Cadena ↔ Anti-Squat")
-    gear_report = goiania.chain_gearing_antisquat_interaction(14, 40)
+    gear_report = base.chain_gearing_antisquat_interaction(14, 40)
     kv("Gearing base", gear_report["original_gearing"])
     kv("Gearing propuesto Goiânia", gear_report["new_gearing"])
     kv("FDR base", gear_report["original_fdr"])
