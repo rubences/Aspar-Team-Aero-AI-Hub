@@ -103,6 +103,58 @@ async def get_master_report(current_user: str = Depends(get_current_user)):
 
 
 @router.get(
+    "/report/executive",
+    summary="Resumen Ejecutivo — GP Brasil 2026",
+    description=(
+        "Devuelve una versión condensada del informe técnico para briefing rápido "
+        "de dirección técnica, piloto y jefes de mecánicos."
+    ),
+)
+async def get_executive_report(current_user: str = Depends(get_current_user)):
+    _require_module()
+    generator = TechnicalReportGenerator()
+    report = generator.generate()
+
+    overview = report.get("circuit_analysis", {}).get("overview", {})
+    mech = report.get("chassis_dynamics", {}).get("mechanical_summary", {})
+    race = report.get("tire_strategy", {}).get("race_strategy", {})
+    criteria = report.get("poc_validation_criteria", {}).get("success_criteria", [])
+
+    return {
+        "generated_by": current_user,
+        "event": report.get("metadata", {}).get("event"),
+        "circuit": report.get("metadata", {}).get("circuit"),
+        "key_metrics": {
+            "lap_time_est_s": overview.get("estimated_lap_time_s"),
+            "thermal_severity_index": overview.get("thermal_severity_index"),
+            "asymmetry_ratio": overview.get("corners", {}).get("asymmetry_ratio"),
+        },
+        "chassis_setup": {
+            "wheelbase_delta_mm": mech.get("wheelbase_delta_mm"),
+            "rake_reduction_deg": mech.get("rake_reduction_deg"),
+            "swingarm_pivot_up_mm": mech.get("swingarm_pivot_up_mm"),
+            "anti_squat_target_pct": mech.get("anti_squat_target_pct"),
+            "final_drive_ratio": mech.get("final_drive_ratio"),
+        },
+        "race_strategy": {
+            "front_compound": race.get("front_compound"),
+            "rear_compound": race.get("rear_compound"),
+            "grid_pressure_front_bar": race.get("front_pressure_grid_bar"),
+            "grid_pressure_rear_bar": race.get("rear_pressure_grid_bar"),
+            "race_viable": race.get("race_viable"),
+        },
+        "validation_criteria": [
+            {
+                "id": c.get("id"),
+                "metric": c.get("metric"),
+                "target": c.get("target"),
+            }
+            for c in criteria
+        ],
+    }
+
+
+@router.get(
     "/circuit",
     summary="Análisis del Circuito de Goiânia",
 )

@@ -4,6 +4,7 @@ import ChatPanel from './chat_interface/ChatPanel';
 import Viewport3D from './Viewport3D';
 import LoginOverlay from './components/LoginOverlay';
 import TelemetryBoard from './components/TelemetryBoard';
+import RaceEngineeringReport from './components/RaceEngineeringReport';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('aspar_token'));
@@ -39,6 +40,7 @@ function App() {
         <nav>
           <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>Muro de Boxes</button>
           <button className={activeTab === 'aero' ? 'active' : ''} onClick={() => setActiveTab('aero')}>Análisis Aero</button>
+          <button className={activeTab === 'race-report' ? 'active' : ''} onClick={() => setActiveTab('race-report')}>Informe Goiânia</button>
           <button className="logout-btn" onClick={() => { localStorage.removeItem('aspar_token'); setToken(null); }}>SALIR</button>
         </nav>
       </header>
@@ -63,6 +65,11 @@ function App() {
           <div className="aero-viewport-container">
             <h2>Viewport 3D Aerodinámico (PINN Flow)</h2>
             <Viewport3D token={token} />
+          </div>
+        ) : (
+          <div className="report-panel-container">
+            <h2>Informe Técnico de Ingeniería de Pista (PoC)</h2>
+            <RaceEngineeringReport token={token} />
           </div>
         )}
       </main>
