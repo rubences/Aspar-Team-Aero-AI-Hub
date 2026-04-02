@@ -1,12 +1,459 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aspar Team Aero AI Hub</title>
+    <title>Aspar Team | Informe Técnico Goiânia 2026</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4f0e7;
+        --panel: #fffdf8;
+        --ink: #162420;
+        --muted: #4f625d;
+        --line: #d5d0c5;
+        --accent: #004d40;
+        --accent-2: #d98f2b;
+        --danger: #a3212a;
+        --ok: #0e6b4f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: "Space Grotesk", sans-serif;
+        background:
+          radial-gradient(circle at 12% 8%, #f5ca88 0%, transparent 28%),
+          radial-gradient(circle at 85% 12%, #8ac9be 0%, transparent 30%),
+          linear-gradient(145deg, #f4f0e7 0%, #ebe3d3 52%, #f6f3eb 100%);
+        min-height: 100vh;
+      }
+
+      .shell {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 24px 18px 80px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #0f2a24 0%, #1b4d43 62%, #34685c 100%);
+        color: #f6f2e8;
+        border: 1px solid #2a5c50;
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 16px 36px rgba(20, 41, 36, 0.26);
+        animation: rise 0.7s ease-out both;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(1.3rem, 2.8vw, 2rem);
+        letter-spacing: 0.02em;
+      }
+
+      .hero p {
+        margin: 10px 0 0;
+        color: #d8e3d9;
+      }
+
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 14px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 22px rgba(23, 33, 30, 0.08);
+      }
+
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 1.05rem;
+      }
+
+      .field {
+        display: grid;
+        gap: 4px;
+        margin-bottom: 10px;
+      }
+
+      label {
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      input {
+        border: 1px solid #b9baae;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font: inherit;
+        background: #fff;
+      }
+
+      .btns {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font: 600 0.92rem "Space Grotesk", sans-serif;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #f2f8f6;
+      }
+
+      .btn-secondary {
+        background: #f5efe0;
+        color: #27372f;
+        border-color: #c9beab;
+      }
+
+      .status {
+        margin-top: 10px;
+        border-radius: 10px;
+        padding: 9px 10px;
+        font-size: 0.88rem;
+        background: #f5f3ee;
+        color: #45554d;
+      }
+
+      .status.ok {
+        background: #e4f5ef;
+        color: var(--ok);
+      }
+
+      .status.err {
+        background: #fbe7e8;
+        color: var(--danger);
+      }
+
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+        gap: 8px;
+      }
+
+      .kpi {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 12px;
+        padding: 11px;
+      }
+
+      .kpi .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .kpi .value {
+        margin-top: 4px;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+
+      .panel-title {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .scroll {
+        max-height: 420px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fcfaf5;
+        padding: 10px;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 0.78rem;
+      }
+
+      .blocks {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .block {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      .block h3 {
+        margin: 0 0 6px;
+        font-size: 0.94rem;
+      }
+
+      .block p {
+        margin: 0;
+        color: #45554d;
+        font-size: 0.9rem;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .kpis {
+          grid-template-columns: repeat(2, minmax(120px, 1fr));
+        }
+
+        .blocks {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <main class="shell">
+      <section class="hero">
+        <h1>Aspar Team | Mission Console Goiânia 2026</h1>
+        <p>
+          UI mínima operativa para cargar y validar el informe técnico dinámico,
+          estrategia de neumáticos y plan de ejecución desde la API del gateway.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Conexión API</h2>
+          <div class="field">
+            <label for="apiUrl">API Base URL</label>
+            <input id="apiUrl" value="http://localhost:8000" />
+          </div>
+          <div class="field">
+            <label for="username">Usuario</label>
+            <input id="username" value="aspar_engineer" />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" value="aspar_pass_2024" />
+          </div>
+
+          <div class="btns">
+            <button class="btn-primary" id="btnLogin">1. Login</button>
+            <button class="btn-secondary" id="btnHealth">2. Health</button>
+            <button class="btn-primary" id="btnReport">3. Cargar Informe</button>
+            <button class="btn-secondary" id="btnDownload">Descargar JSON</button>
+          </div>
+
+          <div class="status" id="status">Esperando acción.</div>
+
+          <h2 style="margin-top: 14px">Token</h2>
+          <div class="scroll mono"><pre id="tokenPreview">(vacío)</pre></div>
+        </article>
+
+        <article class="card">
+          <h2>Resumen Técnico en Vivo</h2>
+          <div class="kpis" id="kpis">
+            <div class="kpi"><div class="label">Evento</div><div class="value">-</div></div>
+            <div class="kpi"><div class="label">Circuito</div><div class="value">-</div></div>
+            <div class="kpi"><div class="label">Anti-Squat</div><div class="value">-</div></div>
+            <div class="kpi"><div class="label">Carrera viable</div><div class="value">-</div></div>
+          </div>
+
+          <div class="blocks" id="blocks"></div>
+
+          <h3 class="panel-title" style="margin-top: 12px">JSON Completo del Informe</h3>
+          <div class="scroll mono"><pre id="reportJson">(sin cargar)</pre></div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      let token = "";
+      let lastReport = null;
+
+      const el = {
+        apiUrl: document.getElementById("apiUrl"),
+        username: document.getElementById("username"),
+        password: document.getElementById("password"),
+        btnLogin: document.getElementById("btnLogin"),
+        btnHealth: document.getElementById("btnHealth"),
+        btnReport: document.getElementById("btnReport"),
+        btnDownload: document.getElementById("btnDownload"),
+        status: document.getElementById("status"),
+        tokenPreview: document.getElementById("tokenPreview"),
+        reportJson: document.getElementById("reportJson"),
+        kpis: document.getElementById("kpis"),
+        blocks: document.getElementById("blocks"),
+      };
+
+      function setStatus(message, type) {
+        el.status.textContent = message;
+        el.status.className = "status";
+        if (type) el.status.classList.add(type);
+      }
+
+      function api(path) {
+        return `${el.apiUrl.value.replace(/\/$/, "")}${path}`;
+      }
+
+      async function login() {
+        try {
+          setStatus("Autenticando...", "");
+          const body = new URLSearchParams({
+            username: el.username.value,
+            password: el.password.value,
+          });
+          const res = await fetch(api("/auth/token"), {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body,
+          });
+          if (!res.ok) throw new Error(`Login inválido (${res.status})`);
+          const data = await res.json();
+          token = data.access_token;
+          el.tokenPreview.textContent = `${token.slice(0, 36)}... (${token.length} chars)`;
+          setStatus("Login correcto. Token JWT activo.", "ok");
+        } catch (err) {
+          setStatus(`Error de login: ${err.message}`, "err");
+        }
+      }
+
+      async function checkHealth() {
+        try {
+          setStatus("Consultando health...", "");
+          const res = await fetch(api("/health"));
+          if (!res.ok) throw new Error(`Health no disponible (${res.status})`);
+          const data = await res.json();
+          setStatus(`Gateway ${data.status} (v${data.version})`, "ok");
+        } catch (err) {
+          setStatus(`Error health: ${err.message}`, "err");
+        }
+      }
+
+      function renderKpis(reportContainer) {
+        const report = reportContainer.report;
+        const anti = report.chassis_dynamics.mechanical_summary.anti_squat_target_pct;
+        const raceViable = report.tire_strategy.race_strategy.race_viable;
+        el.kpis.innerHTML = `
+          <div class="kpi"><div class="label">Evento</div><div class="value">${report.metadata.event}</div></div>
+          <div class="kpi"><div class="label">Circuito</div><div class="value">${report.metadata.circuit}</div></div>
+          <div class="kpi"><div class="label">Anti-Squat target</div><div class="value">${anti}</div></div>
+          <div class="kpi"><div class="label">Carrera viable</div><div class="value">${raceViable ? "SI" : "NO"}</div></div>
+        `;
+
+        const overview = report.circuit_analysis.overview;
+        const mech = report.chassis_dynamics.mechanical_summary;
+        const race = report.tire_strategy.race_strategy;
+        const run = report.run_plan.weekend_summary;
+
+        el.blocks.innerHTML = `
+          <div class="block">
+            <h3>Demanda del Circuito</h3>
+            <p>${overview.corners.right}/${overview.corners.total} curvas a derechas · recta ${overview.main_straight_m} m · severidad térmica ${overview.thermal_severity_index}/10.</p>
+          </div>
+          <div class="block">
+            <h3>Configuración Chasis</h3>
+            <p>Wheelbase +${mech.wheelbase_delta_mm} mm · rake -${mech.rake_reduction_deg}° · pivote +${mech.swingarm_pivot_up_mm} mm · FDR ${mech.final_drive_ratio}.</p>
+          </div>
+          <div class="block">
+            <h3>Estrategia Neumáticos</h3>
+            <p>Carrera: ${race.front_compound} delantero / ${race.rear_compound} trasero · parrilla ${race.front_pressure_grid_bar}/${race.rear_pressure_grid_bar} bar.</p>
+          </div>
+          <div class="block">
+            <h3>Run Plan</h3>
+            <p>${run.total_track_laps} vueltas planificadas en fin de semana · nuevos: ${run.tire_usage.new_fronts_planned} del / ${run.tire_usage.new_rears_planned} tras.</p>
+          </div>
+        `;
+      }
+
+      async function loadReport() {
+        try {
+          if (!token) {
+            await login();
+            if (!token) return;
+          }
+          setStatus("Cargando informe técnico...", "");
+          const res = await fetch(api("/race-engineering/report"), {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error(`No se pudo cargar el informe (${res.status})`);
+          const data = await res.json();
+          lastReport = data;
+          el.reportJson.textContent = JSON.stringify(data, null, 2);
+          renderKpis(data);
+          setStatus(`Informe cargado en ${data.generation_ms} ms.`, "ok");
+        } catch (err) {
+          setStatus(`Error al cargar informe: ${err.message}`, "err");
+        }
+      }
+
+      function downloadReport() {
+        if (!lastReport) {
+          setStatus("Primero carga el informe para descargarlo.", "err");
+          return;
+        }
+        const blob = new Blob([JSON.stringify(lastReport, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "informe_goiania_2026.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus("JSON descargado.", "ok");
+      }
+
+      el.btnLogin.addEventListener("click", login);
+      el.btnHealth.addEventListener("click", checkHealth);
+      el.btnReport.addEventListener("click", loadReport);
+      el.btnDownload.addEventListener("click", downloadReport);
+
+      checkHealth();
+    </script>
   </body>
 </html>
