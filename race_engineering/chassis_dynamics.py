@@ -320,10 +320,11 @@ class ChassisDynamicsCalculator:
         Aplica los ajustes del informe técnico y devuelve el análisis comparativo.
         """
         # Aplicar ajustes propuestos sobre la configuración base
-        orig_wb     = self.cfg.wheelbase_mm
-        orig_rake   = self.cfg.rake_deg
-        orig_offset = self.cfg.fork_offset_mm
-        orig_pivot  = self.cfg.swingarm_pivot_height_mm
+        orig_wb           = self.cfg.wheelbase_mm
+        orig_rake         = self.cfg.rake_deg
+        orig_offset       = self.cfg.fork_offset_mm
+        orig_pivot        = self.cfg.swingarm_pivot_height_mm
+        orig_front_height = self.cfg.front_ride_height_mm
 
         # Ajuste 1: +12 mm wheelbase
         self.cfg.wheelbase_mm += 12
@@ -370,6 +371,6 @@ class ChassisDynamicsCalculator:
         self.cfg.rake_deg                  = orig_rake
         self.cfg.fork_offset_mm            = orig_offset
         self.cfg.swingarm_pivot_height_mm  = orig_pivot
-        self.cfg.front_ride_height_mm      = 0.0
+        self.cfg.front_ride_height_mm      = orig_front_height
 
         return result

@@ -150,27 +150,41 @@ class TireStrategyEngine:
 
         donde β_tire ≈ 0.85 (factor empírico de respuesta de presión de Pirelli slick).
         """
-        profile    = self.profiles[(compound, position)]
-        T_cold_K   = 273.15 + ambient_temp_c + 20  # ~temperatura del neumático en calentador
-        delta_T    = asphalt_temp_c + 35            # incremento esperado de temperatura en pista
-        beta       = 0.85
+        profile = self.profiles[(compound, position)]
 
-        # Presión caliente objetivo = media del rango recomendado
-        hot_target = (profile.pressure_hot_min_bar + profile.pressure_hot_max_bar) / 2.0
+        # Temperatura realista del neumático al salir del box tras calentador.
+        carcass_start_c = max(ambient_temp_c + 20, profile.warmer_temp_c - 10)
+        T_cold_K = 273.15 + carcass_start_c
 
-        # P_cold = P_hot / (1 + beta * delta_T / T_cold_K)
-        cold_pressure = hot_target / (1 + beta * delta_T / T_cold_K)
-        cold_pressure = max(cold_pressure, profile.pressure_min_bar - 0.20)
+        # Incremento térmico adicional esperado ya en pista abierta.
+        delta_T = max(asphalt_temp_c + 18 - carcass_start_c, 12)
+        beta = 0.85
+
+        # Objetivo nominal del fabricante y objetivo operativo compatible con reglamento.
+        nominal_hot_target = (profile.pressure_hot_min_bar + profile.pressure_hot_max_bar) / 2.0
+        operational_hot_target = (
+            max(nominal_hot_target, profile.pressure_min_bar)
+            if position == TirePosition.REAR
+            else nominal_hot_target
+        )
+
+        theoretical_cold_pressure = operational_hot_target / (1 + beta * delta_T / T_cold_K)
+        recommended_cold_pressure = theoretical_cold_pressure
+        if position == TirePosition.REAR:
+            recommended_cold_pressure = max(theoretical_cold_pressure, profile.pressure_min_bar - 0.10)
 
         return {
-            "compound":         compound,
-            "position":         position,
-            "ambient_temp_c":   ambient_temp_c,
-            "asphalt_temp_c":   asphalt_temp_c,
-            "cold_pressure_bar": round(cold_pressure, 2),
-            "hot_target_bar":    round(hot_target, 2),
+            "compound": compound,
+            "position": position,
+            "ambient_temp_c": ambient_temp_c,
+            "asphalt_temp_c": asphalt_temp_c,
+            "carcass_start_temp_c": round(carcass_start_c, 1),
+            "theoretical_cold_pressure_bar": round(theoretical_cold_pressure, 2),
+            "cold_pressure_bar": round(recommended_cold_pressure, 2),
+            "nominal_hot_target_bar": round(nominal_hot_target, 2),
+            "hot_target_bar": round(operational_hot_target, 2),
             "regulatory_min_bar": profile.pressure_min_bar,
-            "compliant":         cold_pressure >= (profile.pressure_min_bar - 0.15),
+            "compliant": operational_hot_target >= profile.pressure_min_bar,
         }
 
     # ── Riesgo de ampollas asimétrico ──────────────────────────────────────
