@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from backend_api.routes import genai, telemetry, auth
+from backend_api.routes import race_engineering
 
 app = FastAPI(
     title="Aspar Aero-AI-Hub Gateway",
@@ -24,6 +25,7 @@ Instrumentator().instrument(app).expose(app)
 app.include_router(auth.router)
 app.include_router(genai.router)
 app.include_router(telemetry.router)
+app.include_router(race_engineering.router)
 
 @app.get("/")
 def read_root():
